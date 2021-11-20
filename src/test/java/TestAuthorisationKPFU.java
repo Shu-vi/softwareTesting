@@ -1,47 +1,63 @@
+import com.codeborne.selenide.Selenide;
+import io.qameta.allure.Step;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+import java.io.File;
+import static com.codeborne.selenide.Selenide.open;
 
 
 public class TestAuthorisationKPFU {
-    private static WebDriver driver;
     private static LoginPage loginPage;
     private static NavigationMenu navigationMenu;
     private static ProgressPage progressPage;
     private static AboutMe aboutMe;
+    private static File file;
 
     @BeforeClass
     public static void startBrowser(){
-        System.setProperty("webdriver.chrome.driver", "C:\\tools\\chromedriver\\chromedriver.exe");
-        driver = new ChromeDriver();
-        loginPage = new LoginPage(driver);
-        navigationMenu = new NavigationMenu(driver);
-        progressPage = new ProgressPage(driver);
-        aboutMe = new AboutMe(driver);
-        driver.get("https://kpfu.ru/");
+        navigationMenu = new NavigationMenu();
+        progressPage = new ProgressPage();
+        loginPage = new LoginPage();
+        aboutMe = new AboutMe();
+        file = new File("im2.jpg");
+        open("https://kpfu.ru/");
+    }
+
+    @Step
+    public static void titleIsExist(String title){
+        Assert.assertTrue(!title.equals(""));
     }
 
     @Test
     public void openAndAuthorizationOnSite() {
+        titleIsExist(Selenide.title());
         loginPage.openWindowAuthorisation();
-        loginPage.inputLogin("");
-        loginPage.inputPassword("");
+        loginPage.inputLogin("VVGeneralov");
+        loginPage.inputPassword("b7sr21r8");
         loginPage.ToAuthorisation();
         Assert.assertEquals("Электронный университет", navigationMenu.getPageName());
     }
 
     @Test
     public void toProgress(){
+        //titleIsExist(Selenide.title());
         navigationMenu.progressClick();
         Assert.assertEquals("Аналитика успеваемости", progressPage.getTitle());
     }
 
     @Test
     public void toAboutMe(){
+        titleIsExist(Selenide.title());
         progressPage.toAboutMe();
         Assert.assertEquals("Генералов Вадим Викторович", aboutMe.getFullName());
+    }
+
+    @Test
+    public void uploadImAndDownloadDoc(){
+        aboutMe.uploadImage(file);
+        aboutMe.saveImage();
+        file = aboutMe.downloadSample();
+        aboutMe.checkFile(file);
     }
 }
